@@ -216,9 +216,13 @@ for index = 1:length(indices)
     
 end
 
-maxHoppDist = max(hoppDistVektor);
+[maxHoppDist, flygIndex] = max(hoppDistVektor);
+
+flygtidHopp = flygtider(flygIndex);
 
 fprintf("\nLängsta hoppet är %0.4g m\n", maxHoppDist)
+
+fprintf("\nFlygtiden för hoppet är %0.3g s\n", flygtidHopp)
 
 
 
