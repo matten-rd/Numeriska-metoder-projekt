@@ -5,7 +5,7 @@ function [hopp, tid] = medFelBasic(L, hGren, g, m, k, kappa, vinkel)
 
     maxHoppDistanser = [0]; % spara maximala hoppdistanserna i
     trunkFel = 1;
-    tolerans = 10^-4; 
+    tolerans = 10^-3; 
     phiToUse = vinkel;
 
     while trunkFel > tolerans

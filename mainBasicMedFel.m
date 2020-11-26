@@ -14,7 +14,7 @@ E_g = 0.005;
 E_m = 0.5;
 E_k = 0.005;
 E_kappa = 0.005;
-E_phi = 0.02; % 1 grad
+E_phi = 0.02; % ~1 grad
 
 
 % ----- STÖRNINGSRÄKNING -----
