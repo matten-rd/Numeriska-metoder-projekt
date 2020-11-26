@@ -4,26 +4,14 @@ clc
 clear variables
 format long
 
-%{
-    KVAR ATT GÖRA:
-        - flygtiden är konstig
-%}
 
 % Givna konstanter
-L = 2.5;
-hGren = 2.8;
-g = 9.81;
-m = 22;
-k = 1.22;
-kappa = 0.14;
-phi1 = -34*pi/180;
-% Startvinkeln (phi2) för 4 m/s delen
-% Räknad med energiprincipen på papper
-L1 = 8/g;
-phi2 = -acos( cos(phi1) - L1/L ); 
+konstanter;
+
+phiToUse = phi1;
 
 % ode45 noggrannhet
-opts = odeset('RelTol',1e-6,'AbsTol',1e-9);
+opts = odeset('RelTol',1e-6, 'AbsTol',1e-6, 'InitialStep',1e-3, 'Refine',6);
 
 
 % ----- VINKEL DELEN -----
@@ -34,7 +22,7 @@ tEnd = 2.7;
 tSpan = [tStart tEnd];
 
 % Begynnelsevärde för gungningen [vinkel, vinkelhastighet]
-u0 = [phi1; 0]; % ändra phi1 till phi2 för delen med 4m/s
+u0 = [phiToUse; 0]; % ändra phi1 till phi2 för delen med 4m/s
 
 % Derivatan av vektorn u = [vinkel, vinkelhastighet] 
 % (räknad på papper)
@@ -218,11 +206,24 @@ end
 
 [maxHoppDist, flygIndex] = max(hoppDistVektor);
 
+% maximala steglängden är garanterat större än felet i flygtid
+% därför används det som felmarginalen
+flygFel = abs(max(diff(ty))); % max steglängd
 flygtidHopp = flygtider(flygIndex);
+
+flygtidMax1 = max( flygtider1 );
+flygtidMax2 = max( flygtider2 );
+
+if (flygtidMax1 > flygtidHopp || flygtidMax2 > flygtidHopp)
+    fprintf("Längst hopp ger INTE längst flygtid \n")
+else
+    fprintf("Längst hopp ger KANSKE längst flygtid \n")
+end
+
 
 fprintf("\nLängsta hoppet är %0.4g m\n", maxHoppDist)
 
-fprintf("\nFlygtiden för hoppet är %0.3g s\n", flygtidHopp)
+fprintf("\nFlygtiden för hoppet är %0.3g s \x00B1 %0.2g s\n", flygtidHopp, flygFel)
 
 
 

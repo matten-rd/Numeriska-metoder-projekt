@@ -5,17 +5,16 @@ clear variables
 format long
 
 % Givna konstanter
-L = 2.5; E_L = 0.05;
-hGren = 2.8; E_hGren = 0.05;
-g = 9.81; E_g = 0.005;
-m = 22; E_m = 0.5;
-k = 1.22; E_k = 0.005;
-kappa = 0.14; E_kappa = 0.005;
-phi1 = -34*pi/180; E_phi = 0.02; % 1 grad
-% Startvinkeln (phi2) för 4 m/s delen
-% Räknad med energiprincipen på papper
-L1 = 8/g;
-phi2 = -acos( cos(phi1) - L1/L );
+konstanter;
+
+% Fel i indata
+E_L = 0.05;
+E_hGren = 0.05;
+E_g = 0.005;
+E_m = 0.5;
+E_k = 0.005;
+E_kappa = 0.005;
+E_phi = 0.02; % 1 grad
 
 
 % ----- STÖRNINGSRÄKNING -----
@@ -32,30 +31,18 @@ phi2 = -acos( cos(phi1) - L1/L );
 [kappa_funk, kappat] = medFelBasic(L, hGren, g, m, k, kappa+E_kappa, phi1);
 [phi_funk, phit] = medFelBasic(L, hGren, g, m, k, kappa, phi1+E_phi);
 
-
+% Totala felet i hopplängden
 funktioner = [L_funk, hGren_funk, g_funk, m_funk, k_funk, kappa_funk, phi_funk];
+E_w = sum(abs(funktioner-w));
 
-% bestäm total felet
-E_w = 0;
-for fun = funktioner
-    E_wdel = abs(fun-w);
-    
-    E_w = E_w + E_wdel;
-end
-
+% Totala felet i flygtiden
 tider = [Lt, ht, gt, mt, kt, kappat, phit];
-
-E_wt = 0;
-for tid = tider
-    E_wtdel = abs(tid-wt);
-    
-    E_wt = E_wt + E_wtdel;
-end
+E_wt = sum(abs(tider-wt));
 
 
 fprintf("\nLängsta hoppet är %0.4g m \x00B1 %0.2g m \n", w, E_w)
 
-fprintf("\nFlygtiden är %0.4g s \x00B1 %0.2g s \n", wt, E_wt)
+fprintf("\nFlygtiden är %0.3g s \x00B1 %0.2g s \n", wt, E_wt)
 
 
 

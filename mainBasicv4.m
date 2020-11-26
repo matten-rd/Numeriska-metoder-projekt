@@ -6,26 +6,16 @@ format long
 
 
 % Givna konstanter
-L = 2.5;
-hGren = 2.8;
-g = 9.81;
-m = 22;
-k = 1.22;
-kappa = 0.14;
-phi1 = -34*pi/180;
-% Startvinkeln (phi2) för 4 m/s delen
-% Räknad med energiprincipen på papper
-L1 = 8/g;
-phi2 = -acos( cos(phi1) - L1/L );
+konstanter;
+
+phiToUse = phi1;
 
 % Steglängd för Runge-Kutta
 tSteg = 0.01;
 
-
 maxHoppDistanser = [0]; % spara maximala hoppdistanserna i
 trunkFel = 1;
-tolerans = 10^-4; 
-phiToUse = phi2;
+tolerans = 10^-3; 
 
 while trunkFel > tolerans
     
@@ -253,11 +243,12 @@ else
     fprintf("Längst hopp ger KANSKE längst flygtid \n")
 end
 
+hoppFel = max( [hoppDistVektor(2:end)-hoppDistVektor(1:end-1); tolerans] );
 
 % ----- SKRIV UT SVAREN -----
 
 % Skriv ut svaret och felet i svaret
-fprintf("\nLängsta hoppet är %0.4g m \x00B1 %0.2g m \n", MAXHOPP, trunkFel)
+fprintf("\nLängsta hoppet är %0.4g m \x00B1 %0.2g m \n", MAXHOPP, hoppFel)
 % \x00B1 är ett plusminus tecken och %g grejjen är för formatering
 
 fprintf("\nFlygtiden för hoppet är %0.3g sekunder \x00B1 %0.4g s \n", flygtidHopp, flygFel)
