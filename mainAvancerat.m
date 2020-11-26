@@ -220,8 +220,9 @@ else
     fprintf("Längst hopp ger KANSKE längst flygtid \n")
 end
 
+hoppFel = max(abs(diff(hoppDistVektor)));
 
-fprintf("\nLängsta hoppet är %0.4g m\n", maxHoppDist)
+fprintf("\nLängsta hoppet är %0.4g m \x00B1 %0.2g m\n", maxHoppDist, hoppFel)
 
 fprintf("\nFlygtiden för hoppet är %0.3g s \x00B1 %0.2g s\n", flygtidHopp, flygFel)
 
