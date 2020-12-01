@@ -1,5 +1,12 @@
 %% Projekt i numeriska metoder
 % Projekt B: Hopp med liten gunga
+% Grupp 32: Filip Strand, Ulrika Toftered
+
+%{
+    Det avancerade programmet av det här projektet:
+        - Låt phiToUse = phi1 eller phi2 => phi1=utan fart | phi2=med fart
+%}
+
 clc
 clear variables
 format long
@@ -11,7 +18,7 @@ konstanter;
 phiToUse = phi1;
 
 % ode45 noggrannhet
-opts = odeset('RelTol',1e-6, 'AbsTol',1e-6, 'InitialStep',1e-3, 'Refine',6);
+opts = odeset('RelTol',1e-6, 'AbsTol',1e-9, 'InitialStep',1e-3, 'Refine',6);
 
 
 % ----- VINKEL DELEN -----
@@ -22,7 +29,7 @@ tEnd = 2.7;
 tSpan = [tStart tEnd];
 
 % Begynnelsevärde för gungningen [vinkel, vinkelhastighet]
-u0 = [phiToUse; 0]; % ändra phi1 till phi2 för delen med 4m/s
+u0 = [phiToUse; 0]; 
 
 % Derivatan av vektorn u = [vinkel, vinkelhastighet] 
 % (räknad på papper)
@@ -46,59 +53,70 @@ phiPrick = phiOphiprick(:, 2);
 
 % ----- XY DELEN -----
 
-iter = 0; maxiter = 20;
-% besgränsning av flygtiden ( valt så barnet hinner landa )
+iter = 0; maxiter = 20; % för felkontroll/ej fastna för länge
+% begränsning av flygtiden ( valt så barnet hinner landa )
 tInit = 0;
 tSlut = 1.1;
 tSpan2 = [tInit tSlut];
 
 indices = indexStart:indexEnd; % intressanta index
 
-% här filtreras ointressanta hopp bort genom typ nån variant av
-% intervallhalvering
-
-while iter < maxiter && length(indices) > 5 % kommer få 7 möjliga hopp
+% här filtreras ointressanta hopp bort genom intervallreducering
+while iter < maxiter && length(indices) > 5
+    
+    if iter == maxiter-1
+        % Koll så att inte iter når maxiter
+        fprintf("Error: maxiter nått\n")
+    end
 
     % ta ut index för två hopp (halvvägs och 1/3)
     index1 = indices(floor(end/3));
     index2 = indices(floor(end/2));
 
     % Nedan följer beräkning av de här två hoppens hoppdistanser
-
+    
+    % Vinkel och vinkelhastigheter
     phiIndex1 = phi(index1); phiPrickIndex1 = phiPrick(index1);
     phiIndex2 = phi(index2); phiPrickIndex2 = phiPrick(index2);
 
+    % Gungans koordninater
     yGunga1 = hGren - L*cos(phiIndex1); xGunga1 = L*sin(phiIndex1); 
     yGunga2 = hGren - L*cos(phiIndex2); xGunga2 = L*sin(phiIndex2); 
 
+    % Konvertera till x-y komponenter
     [xPrick1, yPrick1] = angVelToLinVel(phiIndex1, phiPrickIndex1, L);
     [xPrick2, yPrick2] = angVelToLinVel(phiIndex2, phiPrickIndex2, L);
 
+    % Givet i uppgiften
     V1 = sqrt(xPrick1^2 + yPrick1^2);
     V2 = sqrt(xPrick2^2 + yPrick2^2);
 
+    % Derivator av vektorerna [x; xPrick] och [y; yPrick]
     yprim1 = @(t, y) [y(2); -g-(kappa*y(2)*V1)/m]; 
     xprim1 = @(t, x) [x(2); -(kappa*x(2)*V1)/m]; 
 
     yprim2 = @(t, y) [y(2); -g-(kappa*y(2)*V2)/m]; 
     xprim2 = @(t, x) [x(2); -(kappa*x(2)*V2)/m]; 
 
-    yInit1 = [yGunga1 yPrick1]; xInit1 = [0 xPrick1]; 
-    yInit2 = [yGunga2 yPrick2]; xInit2 = [0 xPrick2]; 
-
+    % Startvärden för vektorerna [x; xPrick] och [y; yPrick]
+    yInit1 = [yGunga1 yPrick1]; xInit1 = [xGunga1 xPrick1]; 
+    yInit2 = [yGunga2 yPrick2]; xInit2 = [xGunga2 xPrick2]; 
+    
+    % ode45 för att ta ut x-y koordinaterna
     [ty1, y1] = ode45(yprim1, tSpan2, yInit1, opts);
     [tx1, x1] = ode45(xprim1, tSpan2, xInit1, opts);
 
     [ty2, y2] = ode45(yprim2, tSpan2, yInit2, opts);
     [tx2, x2] = ode45(xprim2, tSpan2, xInit2, opts);
 
-    % hitta y=0 x-koord
+    % hitta x-koord för när y~0
     yled1 = y1(:,1);
     yled2 = y2(:,1);
 
     [yKoord1, zeroIndex1] = min(abs( yled1 ));
     [yKoord2, zeroIndex2] = min(abs( yled2 ));
     
+    % Ta ut flygtiden
     landTid1 = ty1(zeroIndex1);
     landTid2 = ty2(zeroIndex2);
     
@@ -108,6 +126,7 @@ while iter < maxiter && length(indices) > 5 % kommer få 7 möjliga hopp
     hittaNoll2 = abs(landTid2 - tx2);
     [~, xZeroIndex2] = min(hittaNoll2);
 
+    % x-koordinaterna
     xled1 = x1(:,1);
     xled2 = x2(:,1);
 
@@ -128,16 +147,19 @@ while iter < maxiter && length(indices) > 5 % kommer få 7 möjliga hopp
         indexEnd = index2;
         % (notera att här kapas hälften av hoppen bort)
     end
-    indices = indexStart:indexEnd;
+    % Nytt intervall för nästa iteration
+    indices = indexStart:indexEnd; 
+    
     % Spara flygtider för långt senare
     flygtider1(iter+1,:) = landTid1;
     flygtider2(iter+1,:) = landTid2;
 
     iter = iter+1;
 end
-    
  
-% bestäm phi och phiPrick för dessa hopp
+% ----- gå igenom de möjliga kandidaterna till längsta hoppet -----
+ 
+% bestäm phi och phiPrick för de återstående hoppen
 phi = phi(indices); 
 phiPrick = phiPrick(indices);
 
@@ -157,9 +179,8 @@ tInit = 0;
 tFinal = 1.1;
 tSpan2 = [tInit tFinal];
 
+hoppDistVektor = []; % Spara hoppdistanserna i 
 
-hoppDistVektor = [];
-% ode45 för att ta fram x-y koordinater för barnet under hoppen
 for index = 1:length(indices) 
     % Derivator av vektorerna [x; xPrick] och [y; yPrick]
     yprim = @(t, y) [y(2); -g-(kappa*y(2)*V(index))/m]; 
@@ -169,9 +190,9 @@ for index = 1:length(indices)
     yinit = [yGunga(index) yPrick(index)];
     % första elementet i xInit: 0 om från gungan,
     %                           xGunga(index) om från lodlinjen
-    xinit = [0 xPrick(index)];
+    xinit = [xGunga(index) xPrick(index)];
 
-    % ode45 och ta ut x-y koordinaterna och lägg i matriserna xx resp yy
+    % ode45 för att ta ut x-y koordinaterna
     [ty, y] = ode45(yprim, tSpan2, yinit, opts);
     [tx, x] = ode45(xprim, tSpan2, xinit, opts);
 
@@ -188,6 +209,7 @@ for index = 1:length(indices)
     hittaNoll = abs(landTid - tx);
     [~, xZeroIndex] = min(hittaNoll); 
     
+    % Interpolation - andragradspolynom
     x1 = xled(xZeroIndex-1);
     x2 = xled(xZeroIndex);
     x3 = xled(xZeroIndex+1);
@@ -204,22 +226,28 @@ for index = 1:length(indices)
     
 end
 
+% Ta ut längsta hoppet och indexet för att sedan få flygtiden
 [maxHoppDist, flygIndex] = max(hoppDistVektor);
 
 % maximala steglängden är garanterat större än felet i flygtid
 % därför används det som felmarginalen
 flygFel = abs(max(diff(ty))); % max steglängd
+% ta ut flygtiden för längsta hoppet
 flygtidHopp = flygtider(flygIndex);
 
+% maximala flygtiderna från ett urval av de möjliga hoppen
 flygtidMax1 = max( flygtider1 );
 flygtidMax2 = max( flygtider2 );
 
+% Koll för om längsta hoppet ger längst flygtid
 if (flygtidMax1 > flygtidHopp || flygtidMax2 > flygtidHopp)
     fprintf("Längst hopp ger INTE längst flygtid \n")
 else
     fprintf("Längst hopp ger KANSKE längst flygtid \n")
+    % Det visar sig att det här fallet inte behöver undersökas vidare
 end
 
+% Skillnaden mellan två på varandra följande hopp blir felet
 hoppFel = max(abs(diff(hoppDistVektor)));
 
 fprintf("\nLängsta hoppet är %0.4g m \x00B1 %0.2g m\n", maxHoppDist, hoppFel)

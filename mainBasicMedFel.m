@@ -1,5 +1,13 @@
 %% Projekt i numeriska metoder
 % Projekt B: Hopp med liten gunga
+% Grupp 32: Filip Strand, Ulrika Toftered
+
+%{
+    Det enkla programmet av det här projektet fast med fel i indata:
+        - Låt phiToUse = phi1 eller phi2 => phi1=utan fart | phi2=med fart
+%}
+
+
 clc
 clear variables
 format long
@@ -16,20 +24,21 @@ E_k = 0.005;
 E_kappa = 0.005;
 E_phi = 0.02; % ~1 grad
 
+phiToUse = phi1;
 
 % ----- STÖRNINGSRÄKNING -----
 
 % f_0
-[w, wt] = medFelBasic(L, hGren, g, m, k, kappa, phi1);
+[w, wt] = medFelBasic(L, hGren, g, m, k, kappa, phiToUse);
 
 % alla fel
-[L_funk, Lt] = medFelBasic(L+E_L, hGren, g, m, k, kappa, phi1);
-[hGren_funk, ht] = medFelBasic(L, hGren+E_hGren, g, m, k, kappa, phi1);
-[g_funk, gt] = medFelBasic(L, hGren, g+E_g, m, k, kappa, phi1);
-[m_funk, mt] = medFelBasic(L, hGren, g, m+E_m, k, kappa, phi1);
-[k_funk, kt] = medFelBasic(L, hGren, g, m, k+E_k, kappa, phi1);
-[kappa_funk, kappat] = medFelBasic(L, hGren, g, m, k, kappa+E_kappa, phi1);
-[phi_funk, phit] = medFelBasic(L, hGren, g, m, k, kappa, phi1+E_phi);
+[L_funk, Lt] = medFelBasic(L+E_L, hGren, g, m, k, kappa, phiToUse);
+[hGren_funk, ht] = medFelBasic(L, hGren+E_hGren, g, m, k, kappa, phiToUse);
+[g_funk, gt] = medFelBasic(L, hGren, g+E_g, m, k, kappa, phiToUse);
+[m_funk, mt] = medFelBasic(L, hGren, g, m+E_m, k, kappa, phiToUse);
+[k_funk, kt] = medFelBasic(L, hGren, g, m, k+E_k, kappa, phiToUse);
+[kappa_funk, kappat] = medFelBasic(L, hGren, g, m, k, kappa+E_kappa, phiToUse);
+[phi_funk, phit] = medFelBasic(L, hGren, g, m, k, kappa, phiToUse+E_phi);
 
 % Totala felet i hopplängden
 funktioner = [L_funk, hGren_funk, g_funk, m_funk, k_funk, kappa_funk, phi_funk];
