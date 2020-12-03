@@ -15,18 +15,18 @@ format long
 % Givna konstanter
 konstanter;
 
-phiToUse = phi1;
+phiToUse = phi2;
 
 % Steglängd för Runge-Kutta
 tSteg = 0.01;
 
-% spara maximala hoppdistanserna i | används för trunkFel
-maxHoppDistanser = [0]; 
+% används för trunkFel
+maxHoppPrev = 0; 
 
-trunkFel = 1;
-tolerans = 10^-3; 
+Etrunk_hopp = 1;
+tolerans = 10^-4; 
 
-while trunkFel > tolerans
+while Etrunk_hopp > tolerans
     
 % ----- VINKEL DELEN -----
     
@@ -91,7 +91,7 @@ while trunkFel > tolerans
         yGunga1 = hGren - L*cos(phiIndex1); xGunga1 = L*sin(phiIndex1); 
         yGunga2 = hGren - L*cos(phiIndex2); xGunga2 = L*sin(phiIndex2); 
 
-        % Konvertera till x-y komponenter
+        % Konvertera hastigheten till x-y komponenter
         [xPrick1, yPrick1] = angVelToLinVel(phiIndex1, phiPrickIndex1, L);
         [xPrick2, yPrick2] = angVelToLinVel(phiIndex2, phiPrickIndex2, L);
 
@@ -233,48 +233,59 @@ while trunkFel > tolerans
     % ta ut maxHoppet (och vilket hopp (index) det var)
     [maxHoppDist, maxHoppNummer] = max(hoppDistVektor);
     % Räkna trunkeringsfel
-    trunkFel = abs(maxHoppDist - maxHoppDistanser(1));
-    % spara maxHoppDistanserna
-    maxHoppDistanser = [maxHoppDist; maxHoppDistanser];
-   
+    Etrunk_hopp = abs(maxHoppDist - maxHoppPrev);
+    % Inför nästa iteration
+    maxHoppPrev = maxHoppDist;
+    
     % Inför nästa iteration
     tSteg = tSteg/2; % halvera steglängden
 end
 
 
-MAXHOPP = maxHoppDistanser(1); % Ta ut senaste maxhoppet
-
-% ----- FLYGTIDEN -----
-
-flygFel = abs(ty(1)-ty(2)); % steglängden för tiden blir felet i flygtiden
+MAXHOPP = maxHoppDist;
+FLYGTID = flygtider(maxHoppNummer);
 
 % maximala flygtiderna från ett urval av de möjliga hoppen
 flygtidMax1 = max( flygtider1 );
 flygtidMax2 = max( flygtider2 );
 
-% Ungefärliga flygtiden för längsta hoppet
-flygtidHopp = flygtider(maxHoppNummer);
 
+fprintf("RESULTAT:")
 % Koll för om längsta hoppet get längst flygtid
-if (flygtidMax1 > flygtidHopp || flygtidMax2 > flygtidHopp)
-    fprintf("Längst hopp ger INTE längst flygtid \n")
+if (flygtidMax1 > FLYGTID || flygtidMax2 > FLYGTID)
+    fprintf("\nLängst hopp ger INTE längst flygtid \n")
 else
-    fprintf("Längst hopp ger KANSKE längst flygtid \n")
+    fprintf("\nLängst hopp ger KANSKE längst flygtid \n")
     % Det visar sig att det här fallet inte behöver undersökas vidare
 end
 
 % skillnaden mellan två på varandra följande hopp eller toleransen
 hoppFel = max( [hoppDistVektor(2:end)-hoppDistVektor(1:end-1); tolerans] );
 
-% ----- SKRIV UT SVAREN -----
 
-% Skriv ut svaret och felet i svaret
-fprintf("\nLängsta hoppet är %0.4g m \x00B1 %0.2g m \n", MAXHOPP, hoppFel)
+% Presentationsfelet
+% Väljer att avrunda till 3 decimaler
+Epres_hopp = abs( MAXHOPP - round(MAXHOPP, 3) );
+
+% Totala felet
+% Eber har uteslutits eftersom det är så litet
+Etot_hopp = Epres_hopp + Etrunk_hopp;
+
+% flygtiden är lite speciell eftersom den har konstant skillnad mellan
+% element - det är därför rimligt att använda steglängden som felmarginal
+Etot_tid = abs(ty(1)-ty(2));
+
+
+% Skriv ut alla resultat
+
+fprintf("\nLängsta hoppet är %0.4g m \x00B1 %0.2g m \n", MAXHOPP, Etot_hopp)
 % \x00B1 är ett plusminus tecken och %g grejjen är för formatering
+fprintf("\nFlygtiden för hoppet är %0.3g sekunder \x00B1 %0.4g s \n", FLYGTID, Etot_tid)
 
-fprintf("\nFlygtiden för hoppet är %0.3g sekunder \x00B1 %0.4g s \n", flygtidHopp, flygFel)
-
-
+fprintf("\nFELSKATTNING:")
+fprintf("\nEtrunk_hopp: %0.5g\n", Etrunk_hopp)
+fprintf("Epres_hopp: %0.5g\n", Epres_hopp)
+fprintf("Etot_hopp: %0.5g | Etot_tid: %0.5g\n", Etot_hopp, Etot_tid)
 
 
 

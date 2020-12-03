@@ -27,11 +27,13 @@ E_phi = 0.02; % ~1 grad
 phiToUse = phi1;
 
 % ----- STÖRNINGSRÄKNING -----
+% Notera att enbart tabellfelet presenteras här
+
 
 % f_0
 [w, wt] = medFelBasic(L, hGren, g, m, k, kappa, phiToUse);
 
-% alla fel
+% alla fel (funk=hopplängd , t=flygtid)
 [L_funk, Lt] = medFelBasic(L+E_L, hGren, g, m, k, kappa, phiToUse);
 [hGren_funk, ht] = medFelBasic(L, hGren+E_hGren, g, m, k, kappa, phiToUse);
 [g_funk, gt] = medFelBasic(L, hGren, g+E_g, m, k, kappa, phiToUse);

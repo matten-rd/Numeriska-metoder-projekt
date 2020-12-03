@@ -16,20 +16,21 @@ E_k = 0.005;
 E_kappa = 0.005;
 E_phi = 0.02; % ~1 grad
 
-
+phiToUse = phi1;
 % ----- STÖRNINGSRÄKNING -----
+% Notera att enbart tabellfelet presenteras här
 
 % f_0
-[w, wt] = medFelAvancerat(L, hGren, g, m, k, kappa, phi1);
+[w, wt] = medFelAvancerat(L, hGren, g, m, k, kappa, phiToUse);
 
 % alla fel
-[L_funk, Lt] = medFelAvancerat(L+E_L, hGren, g, m, k, kappa, phi1);
-[hGren_funk, ht] = medFelAvancerat(L, hGren+E_hGren, g, m, k, kappa, phi1);
-[g_funk, gt] = medFelAvancerat(L, hGren, g+E_g, m, k, kappa, phi1);
-[m_funk, mt] = medFelAvancerat(L, hGren, g, m+E_m, k, kappa, phi1);
-[k_funk, kt] = medFelAvancerat(L, hGren, g, m, k+E_k, kappa, phi1);
-[kappa_funk, kappat] = medFelAvancerat(L, hGren, g, m, k, kappa+E_kappa, phi1);
-[phi_funk, phit] = medFelAvancerat(L, hGren, g, m, k, kappa, phi1+E_phi);
+[L_funk, Lt] = medFelAvancerat(L+E_L, hGren, g, m, k, kappa, phiToUse);
+[hGren_funk, ht] = medFelAvancerat(L, hGren+E_hGren, g, m, k, kappa, phiToUse);
+[g_funk, gt] = medFelAvancerat(L, hGren, g+E_g, m, k, kappa, phiToUse);
+[m_funk, mt] = medFelAvancerat(L, hGren, g, m+E_m, k, kappa, phiToUse);
+[k_funk, kt] = medFelAvancerat(L, hGren, g, m, k+E_k, kappa, phiToUse);
+[kappa_funk, kappat] = medFelAvancerat(L, hGren, g, m, k, kappa+E_kappa, phiToUse);
+[phi_funk, phit] = medFelAvancerat(L, hGren, g, m, k, kappa, phiToUse+E_phi);
 
 % Totala felet i hopplängden
 funktioner = [L_funk, hGren_funk, g_funk, m_funk, k_funk, kappa_funk, phi_funk];

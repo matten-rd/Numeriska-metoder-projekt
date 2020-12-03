@@ -3,7 +3,7 @@ function [hopp, tid] = medFelAvancerat(L, hGren, g, m, k, kappa, vinkel)
     phiToUse = vinkel;
 
     % ode45 noggrannhet
-    opts = odeset('RelTol',1e-6, 'AbsTol',1e-6, 'InitialStep',1e-3, 'Refine',6);
+    opts = odeset('RelTol',1e-6, 'AbsTol',1e-9, 'InitialStep',1e-3, 'Refine',6);
 
 
     % ----- VINKEL DELEN -----
@@ -75,8 +75,8 @@ function [hopp, tid] = medFelAvancerat(L, hGren, g, m, k, kappa, vinkel)
         yprim2 = @(t, y) [y(2); -g-(kappa*y(2)*V2)/m]; 
         xprim2 = @(t, x) [x(2); -(kappa*x(2)*V2)/m]; 
 
-        yInit1 = [yGunga1 yPrick1]; xInit1 = [0 xPrick1]; 
-        yInit2 = [yGunga2 yPrick2]; xInit2 = [0 xPrick2]; 
+        yInit1 = [yGunga1 yPrick1]; xInit1 = [xGunga1 xPrick1]; 
+        yInit2 = [yGunga2 yPrick2]; xInit2 = [xGunga2 xPrick2]; 
 
         [ty1, y1] = ode45(yprim1, tSpan2, yInit1, opts);
         [tx1, x1] = ode45(xprim1, tSpan2, xInit1, opts);
@@ -88,8 +88,8 @@ function [hopp, tid] = medFelAvancerat(L, hGren, g, m, k, kappa, vinkel)
         yled1 = y1(:,1);
         yled2 = y2(:,1);
 
-        [yKoord1, zeroIndex1] = min(abs( yled1 ));
-        [yKoord2, zeroIndex2] = min(abs( yled2 ));
+        [~, zeroIndex1] = min(abs( yled1 ));
+        [~, zeroIndex2] = min(abs( yled2 ));
 
         landTid1 = ty1(zeroIndex1);
         landTid2 = ty2(zeroIndex2);
@@ -161,7 +161,7 @@ function [hopp, tid] = medFelAvancerat(L, hGren, g, m, k, kappa, vinkel)
         yinit = [yGunga(index) yPrick(index)];
         % första elementet i xInit: 0 om från gungan,
         %                           xGunga(index) om från lodlinjen
-        xinit = [0 xPrick(index)];
+        xinit = [xGunga(index) xPrick(index)];
 
         % ode45 och ta ut x-y koordinaterna och lägg i matriserna xx resp yy
         [ty, y] = ode45(yprim, tSpan2, yinit, opts);
@@ -180,17 +180,13 @@ function [hopp, tid] = medFelAvancerat(L, hGren, g, m, k, kappa, vinkel)
         hittaNoll = abs(landTid - tx);
         [~, xZeroIndex] = min(hittaNoll); 
 
-        x1 = xled(xZeroIndex-1);
-        x2 = xled(xZeroIndex);
-        x3 = xled(xZeroIndex+1);
+        x_koord = xled( (xZeroIndex-1):(xZeroIndex+1) );
 
-        p1 = yled(yZeroIndex-1);
-        p2 = yled(yZeroIndex);
-        p3 = yled(yZeroIndex+1);
+        y_koord = yled( (yZeroIndex-1):(yZeroIndex+1) );
 
-        c = polyfit([x1,x2,x3], [p1,p2,p3], 2);
+        c = polyfit(x_koord, y_koord, 2);
         P = @(x) c(3) + c(2).*x + c(1).*x.^2;
-        hoppDist = abs( fzero(P, x2) );
+        hoppDist = abs( fzero(P, x_koord(2)) );
 
         hoppDistVektor = [hoppDistVektor; hoppDist];
 

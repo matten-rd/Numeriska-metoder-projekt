@@ -10,8 +10,8 @@ function [hopp, tid] = medFelBasic(L, hGren, g, m, k, kappa, vinkel)
     % Steglängd för Runge-Kutta
     tSteg = 0.01;
 
-    % spara maximala hoppdistanserna i | används för trunkFel
-    maxHoppDistanser = [0]; 
+    % används för trunkFel
+    maxHoppPrev = 0; 
 
     trunkFel = 1;
     tolerans = 10^-3; 
@@ -223,23 +223,23 @@ function [hopp, tid] = medFelBasic(L, hGren, g, m, k, kappa, vinkel)
         % ta ut maxHoppet (och vilket hopp (index) det var)
         [maxHoppDist, maxHoppNummer] = max(hoppDistVektor);
         % Räkna trunkeringsfel
-        trunkFel = abs(maxHoppDist - maxHoppDistanser(1));
+        trunkFel = abs(maxHoppDist - maxHoppPrev);
         % spara maxHoppDistanserna
-        maxHoppDistanser = [maxHoppDist; maxHoppDistanser];
+        maxHoppPrev = maxHoppDist;
 
         % Inför nästa iteration
         tSteg = tSteg/2; % halvera steglängden
     end
 
 
-    MAXHOPP = maxHoppDistanser(1); % Ta ut senaste maxhoppet
+    MAXHOPP = maxHoppDist; % Ta ut senaste maxhoppet
 
     % Ungefärliga flygtiden för längsta hoppet
-    flygtidHopp = flygtider(maxHoppNummer);
+    FLYGTID = flygtider(maxHoppNummer);
 
 
     % ----- Returnera -----
     hopp = MAXHOPP;
-    tid = flygtidHopp;
+    tid = FLYGTID;
 
 end
