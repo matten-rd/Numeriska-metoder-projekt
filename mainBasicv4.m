@@ -15,13 +15,14 @@ format long
 % Givna konstanter
 konstanter;
 
-phiToUse = phi2;
+phiToUse = phi1;
 
 % Steglängd för Runge-Kutta
 tSteg = 0.01;
 
 % används för trunkFel
 maxHoppPrev = 0; 
+flygtidPrev = 0;
 
 Etrunk_hopp = 1;
 tolerans = 10^-4; 
@@ -171,8 +172,6 @@ while Etrunk_hopp > tolerans
     % givet i instruktion
     V = sqrt(xPrick.^2 + yPrick.^2);
     
-    hoppDistVektor = []; % spara hoppdistanser i 
-    
     for index = 1:length(indices)
         % Derivator av vektorerna [x, xPrick] och [y, yPrick]
         yprim = @(t, y) [y(2), -g-(kappa*y(2)*V(index))/m]; 
@@ -196,38 +195,17 @@ while Etrunk_hopp > tolerans
         [~, zeroIndex] = min(abs( yled ));
 
 % ----- INTERPOLATION -----
-
-        % tre x-koord närmast landningen
-        x1 = xled(zeroIndex-1); % lite före landning
-        x2 = xled(zeroIndex); % lite före eller efter landning
-        x3 = xled(zeroIndex+1); % lite efter landning
         
-        % motsvarande tre höjdkoordinater
-        p1 = yled(zeroIndex-1);
-        p2 = yled(zeroIndex);
-        p3 = yled(zeroIndex+1);
+        % Interpolation - andragradspolynom
+        x_koord = xled( (zeroIndex-1):(zeroIndex+1) );
+        y_koord = yled( (zeroIndex-1):(zeroIndex+1) );
+        tider = ty( (zeroIndex-1):(zeroIndex+1) );
         
-        % newtons ansats - andragradspolynom
-        A = [1, 0, 0;
-             1, x2-x1, 0;
-             1, x3-x1, (x3-x1)*(x3-x2)];
-
-        pn = [p1; p2; p3];
-
-        c = A\pn; % koefficenterna för andragradspolynomet
-
-        % Konstruerar andragradspolynomet från newton
-        p = @(x) c(1) + c(2).*(x-x1) + c(3).*(x-x1).*(x-x2);
-        % Derivatan av polynomet ovan (gjord på papper)
-        pPrim = @(x) c(2) + c(3).*(2.*x - x1 - x2);
+        hoppDist = interpolation(x_koord, y_koord, "Basic");
+        flygtid = interpolation(tider, y_koord, "Basic");
         
-        % Hittar nollstället (landningspunkten) med newtonsmetod
-        hoppDist = newton(p, pPrim, x2); % (se separat funktionsfil)
-        
-        hoppDistVektor = [hoppDistVektor; hoppDist]; % sparar alla landningar
-        
-        % spara flygtiderna
-        flygtider(index,:) = ty(zeroIndex);
+        hoppDistVektor(index,:) = hoppDist; % sparar alla landningar
+        flygtider(index,:) = flygtid; % spara flygtiderna
     end
     
     % ta ut maxHoppet (och vilket hopp (index) det var)
@@ -237,13 +215,19 @@ while Etrunk_hopp > tolerans
     % Inför nästa iteration
     maxHoppPrev = maxHoppDist;
     
+    % samma sak för tiden
+    flygtidHopp = flygtider(maxHoppNummer);
+    Etrunk_tid = abs(flygtidHopp - flygtidPrev);
+    flygtidPrev = flygtidHopp;
+    
+    
     % Inför nästa iteration
     tSteg = tSteg/2; % halvera steglängden
 end
 
 
 MAXHOPP = maxHoppDist;
-FLYGTID = flygtider(maxHoppNummer);
+FLYGTID = flygtidHopp;
 
 % maximala flygtiderna från ett urval av de möjliga hoppen
 flygtidMax1 = max( flygtider1 );
@@ -259,21 +243,17 @@ else
     % Det visar sig att det här fallet inte behöver undersökas vidare
 end
 
-% skillnaden mellan två på varandra följande hopp eller toleransen
-hoppFel = max( [hoppDistVektor(2:end)-hoppDistVektor(1:end-1); tolerans] );
-
 
 % Presentationsfelet
 % Väljer att avrunda till 3 decimaler
 Epres_hopp = abs( MAXHOPP - round(MAXHOPP, 3) );
+% väljer för tiden 2 decimaler
+Epres_tid = abs( FLYGTID - round(FLYGTID, 2) );
 
 % Totala felet
 % Eber har uteslutits eftersom det är så litet
 Etot_hopp = Epres_hopp + Etrunk_hopp;
-
-% flygtiden är lite speciell eftersom den har konstant skillnad mellan
-% element - det är därför rimligt att använda steglängden som felmarginal
-Etot_tid = abs(ty(1)-ty(2));
+Etot_tid = Epres_tid + Etrunk_tid;
 
 
 % Skriv ut alla resultat
@@ -283,8 +263,8 @@ fprintf("\nLängsta hoppet är %0.4g m \x00B1 %0.2g m \n", MAXHOPP, Etot_hopp)
 fprintf("\nFlygtiden för hoppet är %0.3g sekunder \x00B1 %0.4g s \n", FLYGTID, Etot_tid)
 
 fprintf("\nFELSKATTNING:")
-fprintf("\nEtrunk_hopp: %0.5g\n", Etrunk_hopp)
-fprintf("Epres_hopp: %0.5g\n", Epres_hopp)
+fprintf("\nEtrunk_hopp: %0.5g | Etrunk_tid: %0.5g\n", Etrunk_hopp, Etrunk_tid)
+fprintf("Epres_hopp: %0.5g | Epres_tid: %0.5g\n", Epres_hopp, Epres_tid)
 fprintf("Etot_hopp: %0.5g | Etot_tid: %0.5g\n", Etot_hopp, Etot_tid)
 
 

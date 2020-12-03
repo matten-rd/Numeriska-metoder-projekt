@@ -182,8 +182,6 @@ for opts = [opts1, opts2]
     tFinal = 1.1;
     tSpan2 = [tInit tFinal];
 
-    hoppDistVektor = []; % Spara hoppdistanserna i 
-
     for index = 1:length(indices) 
         % Derivator av vektorerna [x; xPrick] och [y; yPrick]
         yprim = @(t, y) [y(2); -g-(kappa*y(2)*V(index))/m]; 
@@ -206,7 +204,6 @@ for opts = [opts1, opts2]
         % ta ut landnings index och bestäm flygtiden för det hoppet
         [~, yZeroIndex] = min(abs( yled ));
         landTid = ty(yZeroIndex);
-        flygtider(index,:) = landTid;
 
         % hitta motsvarande tidindex i tx 
         hittaNoll = abs(landTid - tx);
@@ -214,14 +211,14 @@ for opts = [opts1, opts2]
 
         % Interpolation - andragradspolynom
         x_koord = xled( (xZeroIndex-1):(xZeroIndex+1) );
-
         y_koord = yled( (yZeroIndex-1):(yZeroIndex+1) );
+        tider = ty( (yZeroIndex-1):(yZeroIndex+1) );
 
-        c = polyfit(x_koord, y_koord, 2);
-        P = @(x) c(3) + c(2).*x + c(1).*x.^2;
-        hoppDist = abs( fzero(P, x_koord(2)) );
+        hoppDist = interpolation(x_koord, y_koord, "Avancerat");
+        flygtid = interpolation(tider, y_koord, "Avancerat");
 
-        hoppDistVektor = [hoppDistVektor; hoppDist];
+        hoppDistVektor(index,:) = hoppDist;
+        flygtider(index,:) = flygtid;
 
     end
 
