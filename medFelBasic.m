@@ -127,12 +127,12 @@ function [hopp, tid, trunk_hopp, trunk_tid] = medFelBasic(L, hGren, g, m, k, kap
                 % nytt intervall [index1, indexEnd] [1/3 -> slut]
                 % funktionen växer till höger om index1
                 indexStart = index1;
-                indexEnd = indexEnd;
+                % indexEnd = indexEnd
                 % (notera att här kapas 1/3 av hoppen bort)
             else
                 % nytt intervall [indexStart, index2] [start -> mitt]
                 % funktionen är avtagande till höger om index2
-                indexStart = indexStart;
+                % indexStart = indexStart
                 indexEnd = index2;
                 % (notera att här kapas hälften av hoppen bort)
             end
@@ -159,7 +159,7 @@ function [hopp, tid, trunk_hopp, trunk_tid] = medFelBasic(L, hGren, g, m, k, kap
         % från vinkelhast till linjärhast
         [xPrick, yPrick] = angVelToLinVel(phi, phiPrick, L);
 
-        % givet i instruktion
+        % givet i instruktionen
         V = sqrt(xPrick.^2 + yPrick.^2);
 
         for index = 1:length(indices)

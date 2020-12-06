@@ -15,7 +15,7 @@ format long
 % Givna konstanter
 konstanter;
 
-phiToUse = phi2;
+phiToUse = phi2; % ändra denna enligt ovan
 
 % ode45 noggrannhet - används för Etrunk också
 opts1 = odeset('RelTol',1e-3, 'AbsTol',1e-6, 'InitialStep',1e-2, 'Refine',4);
@@ -56,7 +56,8 @@ for opts = [opts1, opts2]
 
     % ----- XY DELEN -----
 
-    iter = 0; maxiter = 20; % för felkontroll/ej fastna för länge
+    iter = 0; maxiter = 20; % för felkontroll/ej fastna för länge i en loop
+    
     % begränsning av flygtiden ( valt så barnet hinner landa )
     tInit = 0;
     tSlut = 1.1;
@@ -112,7 +113,7 @@ for opts = [opts1, opts2]
         [ty2, y2] = ode45(yprim2, tSpan2, yInit2, opts);
         [tx2, x2] = ode45(xprim2, tSpan2, xInit2, opts);
 
-        % hitta x-koord för när y~0
+        % hitta index för när y~0
         yled1 = y1(:,1);
         yled2 = y2(:,1);
 
@@ -124,10 +125,8 @@ for opts = [opts1, opts2]
         landTid2 = ty2(zeroIndex2);
 
         % hitta motsvarande tidindex i tx 
-        hittaNoll1 = abs(landTid1 - tx1);
-        [~, xZeroIndex1] = min(hittaNoll1); 
-        hittaNoll2 = abs(landTid2 - tx2);
-        [~, xZeroIndex2] = min(hittaNoll2);
+        [~, xZeroIndex1] = min( abs(landTid1 - tx1) ); 
+        [~, xZeroIndex2] = min( abs(landTid2 - tx2) );
 
         % x-koordinaterna
         xled1 = x1(:,1);
@@ -141,12 +140,12 @@ for opts = [opts1, opts2]
             % nytt intervall [index1, indexEnd] [1/3 -> slut]
             % funktionen växer till höger om index1
             indexStart = index1;
-            indexEnd = indexEnd;
+            % indexEnd = indexEnd
             % (notera att här kapas 1/3 av hoppen bort)
         else
             % nytt intervall [indexStart, index2] [start -> mitt]
             % funktionen är avtagande till höger om index2
-            indexStart = indexStart;
+            % indexStart = indexStart
             indexEnd = index2;
             % (notera att här kapas hälften av hoppen bort)
         end
@@ -206,17 +205,18 @@ for opts = [opts1, opts2]
         landTid = ty(yZeroIndex);
 
         % hitta motsvarande tidindex i tx 
-        hittaNoll = abs(landTid - tx);
-        [~, xZeroIndex] = min(hittaNoll); 
+        [~, xZeroIndex] = min( abs(landTid - tx) ); 
 
         % Interpolation - andragradspolynom
         x_koord = xled( (xZeroIndex-1):(xZeroIndex+1) );
         y_koord = yled( (yZeroIndex-1):(yZeroIndex+1) );
         tider = ty( (yZeroIndex-1):(yZeroIndex+1) );
-
+        
+        % Se separat funktionsfil
         hoppDist = interpolation(x_koord, y_koord, "Avancerat");
         flygtid = interpolation(tider, y_koord, "Avancerat");
 
+        % Spara hoppen och tiderna
         hoppDistVektor(index,:) = hoppDist;
         flygtider(index,:) = flygtid;
 
@@ -244,11 +244,12 @@ for opts = [opts1, opts2]
     end
     
     if n1 ~= n2 % koll så att det skett någon ändring
+        % Beräkna trunkeringsfel
         Etrunk_hopp = abs(MAXHOPP1-MAXHOPP2);
         Etrunk_tid = abs(FLYGTID1-FLYGTID2);
     end
     
-    i=2;
+    i=2; % till nästa interation
 end
 
 % maximala flygtiderna från ett urval av de möjliga hoppen

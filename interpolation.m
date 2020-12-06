@@ -1,15 +1,17 @@
 function rot = interpolation(vecx, vecy, string)
         % Funktion för att anpassa andragradspolynom till tre punkter
         % och beräkna det aktuella nollstället
-
-        if string == "Avancerat"
+        
+        % För avancerade projektet
+        if string == "Avancerat" 
+            % polyfit + fzero för att hitta roten
             c = polyfit(vecx, vecy, 2);
-
             P = @(x) c(3) + c(2).*x + c(1).*x.^2;
-
             rot = abs( fzero(P, vecx(2)) );
             
+        % För basic projektet
         elseif string == "Basic"
+            % Tre koordinatpar - närmast y=0
             x1 = vecx(1); x2 = vecx(2); x3 = vecx(3);
             p1 = vecy(1); p2 = vecy(2); p3 = vecy(3);
             
@@ -18,7 +20,7 @@ function rot = interpolation(vecx, vecy, string)
                  1, x2-x1, 0;
                  1, x3-x1, (x3-x1)*(x3-x2)];
 
-            pn = [p1; p2; p3];
+            pn = [p1; p2; p3]; % y-värden
 
             c = A\pn; % koefficenterna för andragradspolynomet
 
@@ -30,6 +32,7 @@ function rot = interpolation(vecx, vecy, string)
             rot = newton(p, pPrim, x2); % (se separat funktionsfil)
             
         else
+            % Om fel input
             disp("Fel input: Måste vara 'Avancerat' eller 'Basic'")
             rot = NaN;
         end

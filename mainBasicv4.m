@@ -63,6 +63,7 @@ while Etrunk_hopp > tolerans
 
 
     iter = 0; maxiter = 20; % för felkontroll/ej fastna för länge
+    
     % besgränsning av flygtiden ( valt så barnet hinner landa )
     tInit = 0;
     tSlut = 1.1;
@@ -118,12 +119,12 @@ while Etrunk_hopp > tolerans
         [ty2, y2] = runge_kutta_hopp(yprim2, tInit, yInit2, tSlut, tSteg);
         [tx2, x2] = runge_kutta_hopp(xprim2, tInit, xInit2, tSlut, tSteg);
 
-        % hitta x-koord för när y~0
+        % hitta index för när y~0
         yled1 = y1(:,1);
         yled2 = y2(:,1);
 
-        [yKoord1, zeroIndex1] = min(abs( yled1 ));
-        [yKoord2, zeroIndex2] = min(abs( yled2 ));
+        [~, zeroIndex1] = min(abs( yled1 ));
+        [~, zeroIndex2] = min(abs( yled2 ));
 
         % x-koordinaterna
         xled1 = x1(:,1);
@@ -137,12 +138,12 @@ while Etrunk_hopp > tolerans
             % nytt intervall [index1, indexEnd] [1/3 -> slut]
             % funktionen växer till höger om index1
             indexStart = index1;
-            indexEnd = indexEnd;
+            % indexEnd = indexEnd
             % (notera att här kapas 1/3 av hoppen bort)
         else
             % nytt intervall [indexStart, index2] [start -> mitt]
             % funktionen är avtagande till höger om index2
-            indexStart = indexStart;
+            % indexStart = indexStart
             indexEnd = index2;
             % (notera att här kapas hälften av hoppen bort)
         end
@@ -169,7 +170,7 @@ while Etrunk_hopp > tolerans
     % från vinkelhast till linjärhast
     [xPrick, yPrick] = angVelToLinVel(phi, phiPrick, L);
 
-    % givet i instruktion
+    % givet i instruktionen
     V = sqrt(xPrick.^2 + yPrick.^2);
     
     for index = 1:length(indices)
@@ -201,6 +202,7 @@ while Etrunk_hopp > tolerans
         y_koord = yled( (zeroIndex-1):(zeroIndex+1) );
         tider = ty( (zeroIndex-1):(zeroIndex+1) );
         
+        % Se separat funktionsfil
         hoppDist = interpolation(x_koord, y_koord, "Basic");
         flygtid = interpolation(tider, y_koord, "Basic");
         

@@ -1,12 +1,11 @@
 function [t, y] = runge_kutta_hopp(f, tinit, yinit, tfinal, h)
     % Runge-Kutta för andra ordningens diffekvation
-        % parameter f är derivatan
+        % f är derivatan
     
     % antal "delar"
     n = (tfinal-tinit)/h;
 
-    % Initialisera tid och resultat (y) vektor
-    % (enbart för att göra programmet effektivare)
+    % Initialisera/förallokera tid och resultat (y) vektor
     t = [tinit; NaN(n,1)];
     y = [yinit; NaN(n,2)];
     
@@ -22,6 +21,7 @@ function [t, y] = runge_kutta_hopp(f, tinit, yinit, tfinal, h)
         
         y(i+1,:) = y(i,:) + h/6 * (k1+2*k2+2*k3+k4);
         
+        % Stanna när man når marken
         if y(i,1) < 0
             break
         end

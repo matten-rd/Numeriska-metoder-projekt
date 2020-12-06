@@ -15,7 +15,7 @@ format long
 % Givna konstanter
 konstanter;
 
-% Fel i indata
+% Fel i indata - valda enligt antal värdesiffror
 E_L = 0.05;
 E_hGren = 0.05;
 E_g = 0.005;
@@ -52,7 +52,7 @@ E_wt = sum(abs(tider-wt));
 Ehopp = [Ehopp_0, Ehopp_L, Ehopp_h, Ehopp_g, Ehopp_m, Ehopp_k, Ehopp_kappa, Ehopp_phi];
 Ehopp_tot = sum(Ehopp)/length(Ehopp);
 
-% medelvärde av trunkeringsfel i hoppen
+% medelvärde av trunkeringsfel i tiden
 Etid = [Etid_0, Etid_L, Etid_h, Etid_g, Etid_m, Etid_k, Etid_kappa, Etid_phi];
 Etid_tot = sum(Etid)/length(Etid);
 
@@ -61,7 +61,7 @@ Etid_tot = sum(Etid)/length(Etid);
 Epres_hopp = abs( w - round(w, 2) );
 Epres_tid = abs( wt - round(wt, 2) );
 
-
+% Totala felet
 hoppTotFel = sum( [E_w, Ehopp_tot, Epres_hopp] ); 
 tidTotFel = sum( [E_wt, Etid_tot, Epres_tid] ); 
 

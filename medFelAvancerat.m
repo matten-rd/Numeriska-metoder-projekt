@@ -109,10 +109,8 @@ function [hopp, tid, trunk_hopp, trunk_tid] = medFelAvancerat(L, hGren, g, m, k,
             landTid2 = ty2(zeroIndex2);
 
             % hitta motsvarande tidindex i tx 
-            hittaNoll1 = abs(landTid1 - tx1);
-            [~, xZeroIndex1] = min(hittaNoll1); 
-            hittaNoll2 = abs(landTid2 - tx2);
-            [~, xZeroIndex2] = min(hittaNoll2);
+            [~, xZeroIndex1] = min( abs(landTid1 - tx1) ); 
+            [~, xZeroIndex2] = min( abs(landTid2 - tx2) );
 
             % x-koordinaterna
             xled1 = x1(:,1);
@@ -126,12 +124,12 @@ function [hopp, tid, trunk_hopp, trunk_tid] = medFelAvancerat(L, hGren, g, m, k,
                 % nytt intervall [index1, indexEnd] [1/3 -> slut]
                 % funktionen växer till höger om index1
                 indexStart = index1;
-                indexEnd = indexEnd;
+                % indexEnd = indexEnd
                 % (notera att här kapas 1/3 av hoppen bort)
             else
                 % nytt intervall [indexStart, index2] [start -> mitt]
                 % funktionen är avtagande till höger om index2
-                indexStart = indexStart;
+                % indexStart = indexStart
                 indexEnd = index2;
                 % (notera att här kapas hälften av hoppen bort)
             end
@@ -191,8 +189,7 @@ function [hopp, tid, trunk_hopp, trunk_tid] = medFelAvancerat(L, hGren, g, m, k,
             landTid = ty(yZeroIndex);
 
             % hitta motsvarande tidindex i tx 
-            hittaNoll = abs(landTid - tx);
-            [~, xZeroIndex] = min(hittaNoll); 
+            [~, xZeroIndex] = min( abs(landTid - tx) ); 
 
             % Interpolation - andragradspolynom
             x_koord = xled( (xZeroIndex-1):(xZeroIndex+1) );
@@ -229,13 +226,15 @@ function [hopp, tid, trunk_hopp, trunk_tid] = medFelAvancerat(L, hGren, g, m, k,
         end
 
         if n1 ~= n2 % koll så att det skett någon ändring
+            % Trunkeringsfel
             Etrunk_hopp = abs(MAXHOPP1-MAXHOPP2);
             Etrunk_tid = abs(FLYGTID1-FLYGTID2);
         end
 
-        i=2;
+        i=2; % För nästa iteration
     end
 
+    % Returnera
     hopp = MAXHOPP2;
     tid  = FLYGTID2;
     trunk_hopp = Etrunk_hopp;

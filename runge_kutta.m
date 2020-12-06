@@ -1,12 +1,11 @@
 function [t, y] = runge_kutta(f, tinit, yinit, tfinal, h)
     % Runge-Kutta för andra ordningens diffekvation
-        % parameter f är derivatan
+        % f är derivatan
     
     % antal "delar"
     n = (tfinal-tinit)/h;
 
-    % Initialisera tid och resultat (y) vektor
-    % (enbart för att göra programmet effektivare)
+    % Initialisera/förallokera tid och resultat (y) vektor
     t = [tinit; zeros(n,1)];
     y = [yinit; zeros(n,2)];
     
