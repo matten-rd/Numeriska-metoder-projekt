@@ -1,4 +1,4 @@
-function svar = interpolation(vecx, vecy, string)
+function rot = interpolation(vecx, vecy, string)
         % Funktion för att anpassa andragradspolynom till tre punkter
         % och beräkna det aktuella nollstället
 
@@ -7,7 +7,7 @@ function svar = interpolation(vecx, vecy, string)
 
             P = @(x) c(3) + c(2).*x + c(1).*x.^2;
 
-            svar = abs( fzero(P, vecx(2)) );
+            rot = abs( fzero(P, vecx(2)) );
             
         elseif string == "Basic"
             x1 = vecx(1); x2 = vecx(2); x3 = vecx(3);
@@ -27,11 +27,11 @@ function svar = interpolation(vecx, vecy, string)
             pPrim = @(x) c(2) + c(3).*(2.*x - x1 - x2);
 
             % Hittar nollstället
-            svar = newton(p, pPrim, x2); % (se separat funktionsfil)
+            rot = newton(p, pPrim, x2); % (se separat funktionsfil)
             
         else
             disp("Fel input: Måste vara 'Avancerat' eller 'Basic'")
-            svar = NaN;
+            rot = NaN;
         end
 end
 

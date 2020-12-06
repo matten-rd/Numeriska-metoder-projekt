@@ -15,7 +15,7 @@ format long
 % Givna konstanter
 konstanter;
 
-phiToUse = phi1;
+phiToUse = phi2;
 
 % Steglängd för Runge-Kutta
 tSteg = 0.01;

@@ -1,4 +1,4 @@
-function [hopp, tid] = medFelBasic(L, hGren, g, m, k, kappa, vinkel)
+function [hopp, tid, trunk_hopp, trunk_tid] = medFelBasic(L, hGren, g, m, k, kappa, vinkel)
     %{
         Funktion för att beräkna hopplängd och flygtid.
         Används för störningsräkning med fel i indatan.
@@ -12,11 +12,12 @@ function [hopp, tid] = medFelBasic(L, hGren, g, m, k, kappa, vinkel)
 
     % används för trunkFel
     maxHoppPrev = 0; 
+    flygtidPrev = 0;
 
-    trunkFel = 1;
+    Etrunk_hopp = 1;
     tolerans = 10^-3; 
 
-    while trunkFel > tolerans
+    while Etrunk_hopp > tolerans
 
     % ----- VINKEL DELEN -----
 
@@ -111,8 +112,8 @@ function [hopp, tid] = medFelBasic(L, hGren, g, m, k, kappa, vinkel)
             yled1 = y1(:,1);
             yled2 = y2(:,1);
 
-            [yKoord1, zeroIndex1] = min(abs( yled1 ));
-            [yKoord2, zeroIndex2] = min(abs( yled2 ));
+            [~, zeroIndex1] = min(abs( yled1 ));
+            [~, zeroIndex2] = min(abs( yled2 ));
 
             % x-koordinaterna
             xled1 = x1(:,1);
@@ -161,8 +162,6 @@ function [hopp, tid] = medFelBasic(L, hGren, g, m, k, kappa, vinkel)
         % givet i instruktion
         V = sqrt(xPrick.^2 + yPrick.^2);
 
-        hoppDistVektor = []; % spara hoppdistanser i 
-
         for index = 1:length(indices)
             % Derivator av vektorerna [x, xPrick] och [y, yPrick]
             yprim = @(t, y) [y(2), -g-(kappa*y(2)*V(index))/m]; 
@@ -186,46 +185,30 @@ function [hopp, tid] = medFelBasic(L, hGren, g, m, k, kappa, vinkel)
             [~, zeroIndex] = min(abs( yled ));
 
     % ----- INTERPOLATION -----
+            
+            % Interpolation - andragradspolynom
+            x_koord = xled( (zeroIndex-1):(zeroIndex+1) );
+            y_koord = yled( (zeroIndex-1):(zeroIndex+1) );
+            tider = ty( (zeroIndex-1):(zeroIndex+1) );
 
-            % tre x-koord närmast landningen
-            x1 = xled(zeroIndex-1); % lite före landning
-            x2 = xled(zeroIndex); % lite före eller efter landning
-            x3 = xled(zeroIndex+1); % lite efter landning
+            hoppDist = interpolation(x_koord, y_koord, "Basic");
+            flygtid = interpolation(tider, y_koord, "Basic");
 
-            % motsvarande tre höjdkoordinater
-            p1 = yled(zeroIndex-1);
-            p2 = yled(zeroIndex);
-            p3 = yled(zeroIndex+1);
+            hoppDistVektor(index,:) = hoppDist; % sparar alla landningar
+            flygtider(index,:) = flygtid; % spara flygtiderna
 
-            % newtons ansats - andragradspolynom
-            A = [1, 0, 0;
-                 1, x2-x1, 0;
-                 1, x3-x1, (x3-x1)*(x3-x2)];
-
-            pn = [p1; p2; p3];
-
-            c = A\pn; % koefficenterna för andragradspolynomet
-
-            % Konstruerar andragradspolynomet från newton
-            p = @(x) c(1) + c(2).*(x-x1) + c(3).*(x-x1).*(x-x2);
-            % Derivatan av polynomet ovan (gjord på papper)
-            pPrim = @(x) c(2) + c(3).*(2.*x - x1 - x2);
-
-            % Hittar nollstället (landningspunkten) med newtonsmetod
-            hoppDist = newton(p, pPrim, x2); % (se separat funktionsfil)
-
-            hoppDistVektor = [hoppDistVektor; hoppDist]; % sparar alla landningar
-
-            % spara flygtiderna
-            flygtider(index,:) = ty(zeroIndex);
         end
 
         % ta ut maxHoppet (och vilket hopp (index) det var)
         [maxHoppDist, maxHoppNummer] = max(hoppDistVektor);
         % Räkna trunkeringsfel
-        trunkFel = abs(maxHoppDist - maxHoppPrev);
-        % spara maxHoppDistanserna
+        Etrunk_hopp = abs(maxHoppDist - maxHoppPrev);
         maxHoppPrev = maxHoppDist;
+        
+        % samma sak för tiden
+        flygtidHopp = flygtider(maxHoppNummer);
+        Etrunk_tid = abs(flygtidHopp - flygtidPrev);
+        flygtidPrev = flygtidHopp;
 
         % Inför nästa iteration
         tSteg = tSteg/2; % halvera steglängden
@@ -235,11 +218,13 @@ function [hopp, tid] = medFelBasic(L, hGren, g, m, k, kappa, vinkel)
     MAXHOPP = maxHoppDist; % Ta ut senaste maxhoppet
 
     % Ungefärliga flygtiden för längsta hoppet
-    FLYGTID = flygtider(maxHoppNummer);
+    FLYGTID = flygtidHopp;
 
 
     % ----- Returnera -----
     hopp = MAXHOPP;
     tid = FLYGTID;
+    trunk_hopp = Etrunk_hopp;
+    trunk_tid = Etrunk_tid;
 
 end
